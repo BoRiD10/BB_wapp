@@ -1,0 +1,8 @@
+*.pyc
+*~
+__pycache__
+__pycache__*
+myvenv
+configs/config_beauty.py
+configs/config.py
+logs/
