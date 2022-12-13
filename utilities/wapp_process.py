@@ -91,7 +91,6 @@ class WappHooksProcess:
     def read_message_and_check_flags(self, text):
         """Функция проверяет наличие флагов по каждому сообщению и подтверждает записи"""
         max_messages = 2
-        print(self.message)
         # все флаги сообщений на данный момент
         flag_name = 'confirm_record'
 
