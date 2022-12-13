@@ -201,7 +201,7 @@ class Keys:
             end_repeat_times = []
             for rec in self.multiple_recs:
                 str_datetime = rec['datetime'].strftime('%Y-%m-%dT%H:%M:%S')[11:16]
-                length_seconds = rec['data']['seance_length']
+                length_seconds = rec['seance_length']
                 end_time = (record_time + timedelta(0, int(length_seconds))).strftime('%Y-%m-%dT%H:%M:%S')[11:16]
                 if str_datetime not in repeat_times:
                     repeat_times.append(str_datetime)
@@ -258,7 +258,7 @@ class Keys:
         else:
             for rec in self.multiple_recs:
                 str_datetime = rec['datetime'].strftime('%Y-%m-%dT%H:%M:%S')
-                for i in rec['data']['services']:
+                for i in rec['services']:
                     services += '▫️' + i['title'] + '\n'
                 time_service = ' '.join(['👉', 'в', str_datetime[11:16], ':\n', services])
         return time_service
