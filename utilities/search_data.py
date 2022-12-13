@@ -43,7 +43,7 @@ def get_record_keys(account, r, multiple_recs=None, message='', conn=None):
     month = keys.months[str(date_time.month)]
     day_month = '{} {}'.format(date_time.day, month)
 
-    name = keys.get_date_names()
+    name = keys.get_names()
     master = keys.get_master_name()
     price = keys.get_price()
     services = keys.get_service()
