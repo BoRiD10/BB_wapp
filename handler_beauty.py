@@ -25,10 +25,12 @@ def incoming_chatapi_webhook(conn, message, instance_id):
                                                                  channel=message['channel'], client_name=True,
                                                                  owner_data=True)
     if not accounts:
+        print(f'Account not found: {instance_id}')
         return {'ok': False, 'status': f'Account not found'}
 
     phone = ut.get_digits_from_string(message['phone'])
     for account in accounts:
+        print(account['id'])
         if not ut.account_paid(account):
             continue
         # Получем токен для поддержки партнерских ботов
@@ -40,6 +42,7 @@ def incoming_chatapi_webhook(conn, message, instance_id):
         # Отправляем трансляцию в тг
         process_wapp.send_translation_message()
         # Проверка не ответ ли это на рассылку или шаблон
+        print(message)
         if not message['from_me']:
             # проверяет на наличие ключевых слов в сообщении
             process_wapp.check_key_phrase_and_get_reply()
