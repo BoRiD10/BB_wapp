@@ -61,7 +61,7 @@ class Aggregate:
                           {'$match': {'accounts.id': acc_id}}]
         project = {'$project': {'_id': 0}}
         for i in param:
-            project['$projec'][i] = f'$accounts.{i}'
+            project['$project'][i] = f'$accounts.{i}'
 
         if client_name:
             project['$project']['name'] = '$name'
