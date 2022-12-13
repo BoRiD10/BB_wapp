@@ -30,13 +30,14 @@ class Aggregate:
         Поиск всех параметров аккаунта по инстансу. Возвращает всех аккаунтов с таким инстансом
         """
         if channel == 'telegram':
-            aggregate_data = [{'$match': {'accounts.chat_api.instanceId': instanceId}},
-                              {'$unwind': {'path': '$accounts'}},
-                              {'$match': {'accounts.chat_api.instanceId': instanceId}}]
-        else:
             aggregate_data = [{'$match': {'accounts.telegram_api.instanceId': instanceId}},
                               {'$unwind': {'path': '$accounts'}},
                               {'$match': {'accounts.telegram_api.instanceId': instanceId}}]
+        else:
+            aggregate_data = [{'$match': {'accounts.chat_api.instanceId': instanceId}},
+                              {'$unwind': {'path': '$accounts'}},
+                              {'$match': {'accounts.chat_api.instanceId': instanceId}}]
+
         project = {'$project': {'_id': 0}}
         for i in param:
             project['$project'][i] = f'$accounts.{i}'
