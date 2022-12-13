@@ -5,7 +5,7 @@ import utilities.utils as ut
 
 def formatting_info(text):
     logger.remove()
-    logger.add('logs/utilities/formatting_info.log', format='{time} {level} {message}',
+    logger.add('BB_wapp/logs/utilities/formatting_info.log', format='{time} {level} {message}',
                level='INFO', rotation='00:00', compression='zip')
     logger.info(text)
 

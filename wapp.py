@@ -13,7 +13,7 @@ from telegram import Bot
 
 def wapp_info(text):
     logger.remove()
-    logger.add('botsarmy/logs/wapp/wapp_info.log', format='{time} {level} {message}',
+    logger.add('BB_wapp/logs/wapp/wapp_info.log', format='{time} {level} {message}',
                level='INFO', rotation='00:00', compression='tar.xz')
     logger.info(text)
 

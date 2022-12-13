@@ -6,7 +6,7 @@ from telegram import Bot
 
 
 class CustomException(BaseException):
-    def __init__(self, exc_id: str, user_id: int, log_path='botsarmy/logs/exceptions/custom_error.log') -> None:
+    def __init__(self, exc_id: str, user_id: int, log_path='BB_wapp/logs/exceptions/custom_error.log') -> None:
         self.exc_id = exc_id
         self.user_id = user_id
         self.log_path = log_path

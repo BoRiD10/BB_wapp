@@ -4,14 +4,14 @@ from loguru import logger
 
 def incoming_hooks_info(text):
     logger.remove()
-    logger.add('botsarmy/logs/green_api/incoming_hooks.log', format='{time} {level} {message}',
+    logger.add('BB_wapp/logs/green_api/incoming_hooks.log', format='{time} {level} {message}',
                level='INFO', rotation='00:00', compression='tar.xz')
     logger.info(text)
 
 
 def outgoing_hooks_info(text):
     logger.remove()
-    logger.add('botsarmy/logs/green_api/outgoing_hooks.log', format='{time} {level} {message}',
+    logger.add('BB_wapp/logs/green_api/outgoing_hooks.log', format='{time} {level} {message}',
                level='INFO', rotation='00:00', compression='tar.xz')
     logger.info(text)
 

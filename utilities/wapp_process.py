@@ -16,7 +16,7 @@ from utilities import speech_recognition
 
 def wapp_process_error(text):
     logger.remove()
-    logger.add('botsarmy/logs/wapp_process/wapp_process_error.log', format='{time} {level} {message}',
+    logger.add('BB_wapp/logs/wapp_process/wapp_process_error.log', format='{time} {level} {message}',
                level='ERROR', rotation='00:00', compression='tar.xz')
     logger.error(text)
 
@@ -91,6 +91,7 @@ class WappHooksProcess:
     def read_message_and_check_flags(self, text):
         """Функция проверяет наличие флагов по каждому сообщению и подтверждает записи"""
         max_messages = 2
+        print(self.message)
         # все флаги сообщений на данный момент
         flag_name = 'confirm_record'
 

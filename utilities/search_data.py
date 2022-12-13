@@ -12,14 +12,14 @@ import utilities.utils as ut
 
 def yclients_error(text):
     logger.remove()
-    logger.add('botsarmy/logs/yclients/yclients_error.log', format='{time} {level} {message}',
+    logger.add('BB_wapp/logs/yclients/yclients_error.log', format='{time} {level} {message}',
                level='ERROR', rotation='00:00', compression='tar.xz')
     logger.error(text)
 
 
 def yclients_short_link_token(text):
     logger.remove()
-    logger.add('botsarmy/logs/testing_short_links/keys_create.log', format='{time} {level} {message}',
+    logger.add('BB_wapp/logs/testing_short_links/keys_create.log', format='{time} {level} {message}',
                level='INFO', rotation='00:00', compression='tar.xz')
     logger.error(text)
 

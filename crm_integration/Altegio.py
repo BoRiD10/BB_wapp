@@ -25,13 +25,13 @@ moscow = pytz.timezone('Europe/Moscow')
 
 def market_info(text, event_type):
     if event_type == 'activation':
-        log_path = '/home/teman77/botsarmy/logs/market/activations.log'
+        log_path = '/home/teman77/BB_wapp/logs/market/activations.log'
     elif event_type == 'payment':
-        log_path = '/home/teman77/botsarmy/logs/market/payments.log'
+        log_path = '/home/teman77/BB_wapp/logs/market/payments.log'
     elif event_type == 'refund':
-        log_path = '/home/teman77/botsarmy/logs/market/payments.log'
+        log_path = '/home/teman77/BB_wapp/logs/market/payments.log'
     else:
-        log_path = '/home/teman77/botsarmy/logs/market/wtf.log'
+        log_path = '/home/teman77/BB_wapp/logs/market/wtf.log'
 
     logger.remove()
     logger.add(log_path, format='{time} {level} {message}',

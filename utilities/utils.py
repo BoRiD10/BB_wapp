@@ -16,7 +16,7 @@ from wapp import GreenApi
 
 def utils_error(text):
     logger.remove()
-    logger.add('botsarmy/logs/utilities/utils_error.log', format='{time} {level} {message}',
+    logger.add('BB_wapp/logs/utilities/utils_error.log', format='{time} {level} {message}',
                level='ERROR', rotation='00:00', compression='tar.xz')
     logger.error(text)
 
@@ -24,14 +24,14 @@ def utils_error(text):
 def utils_info(obj, function):
     text = f'{function}: {obj["bot_client"]} {obj["wapp"]["instanceId"]} {obj["phone"]} {obj["task_queue"]} {obj["body"][0:30]}'
     logger.remove()
-    logger.add('botsarmy/logs/utilities/utils_info.log', format='{time} {level} {message}',
+    logger.add('BB_wapp/logs/utilities/utils_info.log', format='{time} {level} {message}',
                level='INFO', rotation='00:00', compression='tar.xz')
     logger.info(text)
 
 
 def check_wapp_logs(text):
     logger.remove()
-    logger.add('botsarmy/logs/utilities/wapp/check_wapp.log', format='{time} {level} {message}',
+    logger.add('BB_wapp/logs/utilities/wapp/check_wapp.log', format='{time} {level} {message}',
                level='INFO', rotation='00:00', compression='tar.xz')
     logger.info(text)
 
