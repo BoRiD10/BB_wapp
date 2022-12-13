@@ -167,8 +167,7 @@ class Keys:
                     price += int(service['cost'])
         else:
             for records in self.multiple_recs:
-                print(self.multiple_recs)
-                for service in records['data']['services']:
+                for service in records['services']:
                     if int(service['cost_per_unit'] * service['amount']) == service['cost']:
                         price += int(service['cost_per_unit'] * service['amount'])
                     else:
