@@ -9,7 +9,6 @@ import handler_beauty
 
 
 def incoming_wapp(r):
-    ts_all = time.time()
     """Входящие хуки от chat api """
     # получаем информацию о первом включении инстанса
     if 'stateInstance' in r:
@@ -25,21 +24,11 @@ def incoming_wapp(r):
         r = green_to_api(r)
     else:
         return {'ok': False, 'status': 'no valid type webhook'}
-    proc_time = 0
     if 'messages' in r:
-        ts_proc = time.time()
         with mongo.get_conn() as conn:
             for message in r['messages']:
                 standart_message = form_hook.formatting_wapp_hook(message, r['instanceId'])
                 handler_beauty.incoming_chatapi_webhook(conn, standart_message, r['instanceId'])
-        te_proc = time.time()
-        delta_time = round(te_proc - ts_proc, 3)
-        proc_time = delta_time
-    te_all = time.time()
-    delta_time = round(te_all - ts_all, 3)
-    all_time = delta_time
-    if all_time >= 2:
-        print(f'proc: {proc_time} all: {all_time} res: {r}')
     return 'ok'
 
 
