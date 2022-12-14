@@ -13,6 +13,35 @@ from configs import config_beauty, text_templates
 
 moscow = pytz.timezone('Europe/Moscow')
 
+conn = mongo.get_conn()
+def test(conn):
+    ts_acc = time.time()
+    accounts = mongo.Aggregate(conn).get_all_acc_for_instance_id('5511761975', 'settings', 'ignore_list', 'chat_api', 'id', 'trello', 'CRM_data', 'key_phrases', client_name=True, owner_data=True)
+    te_acc = time.time()
+    delta_time = round(te_acc - ts_acc, 3)
+    acc_time = delta_time
+    print(acc_time)
+    ts_acc = time.time()
+    project = {
+        'name': 1,
+        'owner': 1,
+        'accounts.settings': 1,
+        'accounts.ignore_list': 1,
+        'accounts.chat_api': 1,
+        'accounts.id': 1,
+        'accounts.trello': 1,
+        'accounts.CRM_data': 1,
+        'accounts.key_phrases': 1,
+    }
+    bot_clients = list(conn['beauty_bot']['bot_clients'].find({'accounts.chat_api.instanceId': '5511761975'}, project))
+    accounts = [[bc['name']] + [bc['owner']] + bc['accounts'] for bc in bot_clients]
+    accounts = [dict({'name': account[0], 'owner': account[1]}, **acc) for account in accounts for acc in account[2:]]
+    te_acc = time.time()
+    delta_time = round(te_acc - ts_acc, 3)
+    acc_time = delta_time
+    print(acc_time)
+
+test(conn)
 
 def incoming_chatapi_webhook(conn, message, instance_id):
     """Функция обработки входящего хука сообщения от chat_api"""
@@ -20,11 +49,23 @@ def incoming_chatapi_webhook(conn, message, instance_id):
         change_rev_group(conn, message, instance_id)
         return 'switch group'
     ts_acc = time.time()
-    accounts = mongo.Aggregate(conn).get_all_acc_for_instance_id(instance_id, 'settings', 'ignore_list', 'chat_api',
-                                                                'id',
-                                                                'trello', 'CRM_data', 'key_phrases', 'telegram_api',
-                                                                 channel=message['channel'], client_name=True,
-                                                                 owner_data=True)
+    # accounts = mongo.Aggregate(conn).get_all_acc_for_instance_id(instance_id, 'settings', 'ignore_list', 'chat_api', 'id', 'trello', 'CRM_data', 'key_phrases', client_name=True, owner_data=True)
+
+    project = {
+        'name': 1,
+        'owner': 1,
+        'accounts.settings': 1,
+        'accounts.ignore_list': 1,
+        'accounts.chat_api': 1,
+        'accounts.id': 1,
+        'accounts.trello': 1,
+        'accounts.CRM_data': 1,
+        'accounts.key_phrases': 1,
+    }
+    bot_clients = list(conn['beauty_bot']['bot_clients'].find({'accounts.chat_api.instanceId': '5511761975'}, project))
+    accounts = [[bc['name']] + [bc['owner']] + bc['accounts'] for bc in bot_clients]
+    accounts = [dict({'name': account[0], 'owner': account[1]}, **acc) for account in accounts for acc in account[2:]]
+
     te_acc = time.time()
     delta_time = round(te_acc - ts_acc, 3)
     acc_time = delta_time
@@ -66,7 +107,7 @@ def incoming_chatapi_webhook(conn, message, instance_id):
                 text = message['body']
             else:
                 text = message['caption']
-            debug = f'acc: {acc_time} token: {token_time} translate: {translate_time}'
+            debug = f'acc: {acc_time} token: {token_time} translate: {translate_time} save: {save_time}'
             if text is not None:
                 # Проверяем, сообщение для подтверждения
                 ts_confirm = time.time()

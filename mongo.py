@@ -29,14 +29,9 @@ class Aggregate:
         """
         Поиск всех параметров аккаунта по инстансу. Возвращает всех аккаунтов с таким инстансом
         """
-        if channel == 'telegram':
-            aggregate_data = [{'$match': {'accounts.telegram_api.instanceId': instanceId}},
-                              {'$unwind': {'path': '$accounts'}},
-                              {'$match': {'accounts.telegram_api.instanceId': instanceId}}]
-        else:
-            aggregate_data = [{'$match': {'accounts.chat_api.instanceId': instanceId}},
-                              {'$unwind': {'path': '$accounts'}},
-                              {'$match': {'accounts.chat_api.instanceId': instanceId}}]
+        aggregate_data = [{'$match': {'accounts.chat_api.instanceId': instanceId}},
+                          {'$unwind': {'path': '$accounts'}},
+                          {'$match': {'accounts.chat_api.instanceId': instanceId}}]
 
         project = {'$project': {'_id': 0}}
         for i in param:
@@ -49,7 +44,7 @@ class Aggregate:
             project['$project']['owner'] = '$owner'
 
         aggregate_data.append(project)
-        data = list(self.conn[config_beauty.bb_db]['bot_clients'].aggregate(aggregate_data))
+        data = list(self.conn['beauty_bot']['bot_clients'].aggregate(aggregate_data))
         if len(data) > 0:
             return data
         else:
