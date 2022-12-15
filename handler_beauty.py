@@ -26,12 +26,12 @@ def incoming_chatapi_webhook(conn, message, instance_id):
     te_acc = time.time()
     delta_time = round(te_acc - ts_acc, 3)
     acc_time = delta_time
-    debug = f'acc: {acc_time} len:{len(accounts)} inst: {instance_id}'
 
     if not accounts:
         print(f'Account not found: {instance_id}')
         return {'ok': False, 'status': f'Account not found'}
 
+    debug = f'acc: {acc_time} len:{len(accounts)} inst: {instance_id}'
     phone = ut.get_digits_from_string(message['phone'])
     for account in accounts:
         if not ut.account_paid(account):
