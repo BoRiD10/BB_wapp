@@ -263,7 +263,6 @@ def confirm_or_dicline_rec(conn, flag, client_phone, flag_name, confirm=None):
 
     for template in account['templates']['timing_messages']:
         if not confirm and template['id'] == flag['message_id'] and 'declined_record' not in template:
-            print(debug + ' No declined message')
             return {'ok': True, 'status': 'No declined message'}
 
     res = sd.confirm_client_recs_for_date(account["CRM_data"], flag['client_id'], flag['date'], confirm=confirm)
