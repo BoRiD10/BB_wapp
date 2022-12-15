@@ -39,26 +39,32 @@ def incoming_chatapi_webhook(conn, message, instance_id):
         te_token = time.time()
         delta_time = round(te_token - ts_token, 3)
         token_time = delta_time
+
         # Получение списка номеров исключений(которые не надо проверять)
         reply_accept = account['settings']['reply_msg_check']
         ignore_list = account['ignore_list']
         process_wapp = WappHooksProcess(conn, account, message, phone, instance_id)
+
         # Отправляем трансляцию в тг
         ts_translate = time.time()
         process_wapp.send_translation_message()
         te_translate = time.time()
         delta_time = round(te_translate - ts_translate, 3)
         translate_time = delta_time
+
         # Проверка не ответ ли это на рассылку или шаблон
         if not message['from_me']:
+
             # проверяет на наличие ключевых слов в сообщении
             process_wapp.check_key_phrase_and_get_reply()
+
             # Сохраняем номер в базу для трансфера в базу ycl
             ts_save = time.time()
             process_wapp.save_phones_in_db()
             te_save = time.time()
             delta_time = round(te_save - ts_save, 3)
             save_time = delta_time
+
             if message['type'] in ['chat', 'buttons_response']:
                 text = message['body']
             else:

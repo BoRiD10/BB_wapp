@@ -93,7 +93,6 @@ class WappHooksProcess:
         max_messages = 2
         # все флаги сообщений на данный момент
         flag_name = 'confirm_record'
-        trace = f'{flag_name} '
         # добавляем номер телефона клиента
         client_phone = self.message['phone']
 
@@ -105,15 +104,10 @@ class WappHooksProcess:
         if 'g.us' in self.message['chat_id'] or '-' in self.message['chat_id']:
             return {'ok': False, 'status': 'record not confirmed'}
 
-        ts_search = time.time()
         search_data = {'client_phone': client_phone, 'instanceId': self.instance_id, 'type': flag_name}
         # ищем флаг для данного клиента
         all_flags = list(
             self.conn[config_beauty.bb_db]['flags'].find(search_data).sort('sent_time', DESCENDING).limit(1))
-        te_search = time.time()
-        delta_time = round(te_search - ts_search, 3)
-        search_time = delta_time
-        trace += f' search: {search_time}'
 
         if len(all_flags) == 0:
             return {'ok': False, 'status': 'record not confirmed'}
@@ -122,14 +116,8 @@ class WappHooksProcess:
 
         # проверяем на просроченность
         if time.time() - flag['sent_time'] > flag['valid_hours'] * 60 * 60:
-            ts_del = time.time()
             self.conn[config_beauty.bb_db]['flags'].delete_many(
                 {'client_phone': client_phone, 'acc_id': flag['acc_id']})
-            te_del = time.time()
-            delta_time = round(te_del - ts_del, 3)
-            del_time = delta_time
-            trace += f' del: {del_time}'
-            print(trace)
             return {'ok': False, 'status': 'flag not valid'}
 
         # ищем согласие в тексте
@@ -137,42 +125,22 @@ class WappHooksProcess:
 
         # если не подтвердил
         if confirmation == 'declined':
-            ts_declined = time.time()
             confirm_or_dicline_rec(self.conn, flag, client_phone, flag_name, confirm=False)
-            te_declined = time.time()
-            delta_time = round(te_declined - ts_declined, 3)
-            declined_time = delta_time
-            trace += f' del: {declined_time}'
-
 
         # если нейтрально
         if confirmation == 'neutral':
-            ts_neutral = time.time()
             # если было меньше входящих, чем установлено (обычно 2), то просто делаем + 1
             if flag['income_messages'] < max_messages:
                 self.conn[config_beauty.bb_db]['flags'].update_one({'client_phone': client_phone, 'instanceId': self.instance_id}, {
                     '$set': {'income_messages': flag['income_messages'] + 1}})
-                te_neutral = time.time()
-                delta_time = round(te_neutral - ts_neutral, 3)
-                neutral_time = delta_time
-                trace += f' neutral upd: {neutral_time}'
             # если равно максимуму, то удаляем флаг
             else:
                 self.conn[config_beauty.bb_db]['flags'].delete_many({'client_phone': client_phone, 'instanceId': self.instance_id})
-                te_neutral = time.time()
-                delta_time = round(te_neutral - ts_neutral, 3)
-                neutral_time = delta_time
-                trace += f' neutral del: {neutral_time}'
 
         # если нашёл согласие в сообщении
         elif confirmation == 'yes':
-            ts_confirm = time.time()
             confirm_or_dicline_rec(self.conn, flag, client_phone, flag_name, confirm=True)
-            te_confirm = time.time()
-            delta_time = round(te_confirm - ts_confirm, 3)
-            confirm_time = delta_time
-            trace += f' confirm: {confirm_time}'
-        print(trace)
+
         return {'ok': True, 'status': 'record confirmed'}
 
     def check_reply_tmp(self):
@@ -288,18 +256,35 @@ class WappHooksProcess:
 
 def confirm_or_dicline_rec(conn, flag, client_phone, flag_name, confirm=None):
     # удаляем флаг
+    ts_del = time.time()
     conn[config_beauty.bb_db]['flags'].delete_many({'client_phone': client_phone, 'instanceId': flag['instanceId']})
+    te_del = time.time()
+    delta_time = round(te_del - ts_del, 3)
+    del_time = delta_time
+    debug = f' confirm: {del_time}'
 
     # находим соответствующий аккаунт
+    ts_find = time.time()
     account = mongo.Aggregate(conn).get_param_acc_for_id(flag['acc_id'], 'id', 'CRM_data', 'templates', 'settings',
                                                          'telegram_api', 'chat_api')
+    te_find = time.time()
+    delta_time = round(te_find - ts_find, 3)
+    find_time = delta_time
+    debug += f' find: {find_time}'
 
     for template in account['templates']['timing_messages']:
         if not confirm and template['id'] == flag['message_id'] and 'declined_record' not in template:
+            print(debug + ' No declined message')
             return {'ok': True, 'status': 'No declined message'}
 
+    ts_confirm = time.time()
     res = sd.confirm_client_recs_for_date(account["CRM_data"], flag['client_id'], flag['date'], confirm=confirm)
+    te_confirm = time.time()
+    delta_time = round(te_confirm - ts_confirm, 3)
+    confirm_time = delta_time
+    debug += f' confirm: {confirm_time}'
 
+    ts_logs = time.time()
     if not res:
         wapp_process_error(
             f'handler_beauty.py read_message_and_check_flags() No recs: {account["CRM_data"]["branch_name"]} {client_phone}')
@@ -308,8 +293,17 @@ def confirm_or_dicline_rec(conn, flag, client_phone, flag_name, confirm=None):
     if 'No confirm' in res:
         wapp_process_error(f'handler_beauty.py read_message_and_check_flags() confirmation==yes: {res}')
         return 'No confirm'
+    te_logs = time.time()
+    delta_time = round(te_logs - ts_logs, 3)
+    logs_time = delta_time
+    debug += f' logs: {logs_time}'
 
+    ts_confirm_msg = time.time()
     send_confirm_msg(conn, res, account, client_phone, flag, flag_name, confirm=confirm)
+    te_confirm_msg = time.time()
+    delta_time = round(te_confirm_msg - ts_confirm_msg, 3)
+    confirm_msg_time = delta_time
+    debug += f' confirm_msg: {confirm_msg_time}'
 
 
 def send_confirm_msg(conn, res, account, client_phone, flag, flag_name, confirm=None):
