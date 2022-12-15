@@ -63,7 +63,7 @@ def incoming_chatapi_webhook(conn, message, instance_id):
                 text = message['body']
             else:
                 text = message['caption']
-            debug = f'acc: {acc_time} token: {token_time} translate: {translate_time} save: {save_time}'
+            debug = f'acc: {acc_time} len:{len(accounts)} inst: {instance_id} token: {token_time} translate: {translate_time} save: {save_time}'
             if text is not None:
                 # Проверяем, сообщение для подтверждения
                 ts_confirm = time.time()
@@ -97,11 +97,16 @@ def incoming_chatapi_webhook(conn, message, instance_id):
             te_template = time.time()
             delta_time = round(te_template - ts_template, 3)
             template_time = delta_time
-            debug += f' sendout: {sendout_time} template: {template_time}'
-            print(debug)
+
+            ts_heck = time.time()
             # Проверка на нахождение номера в списке исключения, если нет, то обрабатываем
             if phone not in ignore_list and reply_accept == 1 and len(phone) in range(10, 13):
                 process_wapp.save_phone_for_check_and_warn()
+            te_heck = time.time()
+            delta_time = round(te_heck - ts_heck, 3)
+            heck_time = delta_time
+            debug += f' sendout: {sendout_time} template: {template_time} heck: {heck_time}'
+            print(debug)
 
         process_wapp.add_phone_in_blacklist(token)
 
