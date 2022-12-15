@@ -93,7 +93,7 @@ class WappHooksProcess:
         max_messages = 2
         # все флаги сообщений на данный момент
         flag_name = 'confirm_record'
-
+        trace = f'{flag_name} '
         # добавляем номер телефона клиента
         client_phone = self.message['phone']
 
@@ -105,12 +105,15 @@ class WappHooksProcess:
         if 'g.us' in self.message['chat_id'] or '-' in self.message['chat_id']:
             return {'ok': False, 'status': 'record not confirmed'}
 
-        search_data = {'client_phone': client_phone, 'type': flag_name,
-                       '$or': [{'instanceId': self.instance_id}, {'telegram_instance': self.instance_id}]}
-
+        ts_search = time.time()
+        search_data = {'client_phone': client_phone, 'instanceId': self.instance_id, 'type': flag_name}
         # ищем флаг для данного клиента
         all_flags = list(
             self.conn[config_beauty.bb_db]['flags'].find(search_data).sort('sent_time', DESCENDING).limit(1))
+        te_search = time.time()
+        delta_time = round(te_search - ts_search, 3)
+        search_time = delta_time
+        trace += f' search: {search_time}'
 
         if len(all_flags) == 0:
             return {'ok': False, 'status': 'record not confirmed'}
@@ -119,8 +122,14 @@ class WappHooksProcess:
 
         # проверяем на просроченность
         if time.time() - flag['sent_time'] > flag['valid_hours'] * 60 * 60:
+            ts_del = time.time()
             self.conn[config_beauty.bb_db]['flags'].delete_many(
                 {'client_phone': client_phone, 'acc_id': flag['acc_id']})
+            te_del = time.time()
+            delta_time = round(te_del - ts_del, 3)
+            del_time = delta_time
+            trace += f' del: {del_time}'
+            print(trace)
             return {'ok': False, 'status': 'flag not valid'}
 
         # ищем согласие в тексте
@@ -128,25 +137,42 @@ class WappHooksProcess:
 
         # если не подтвердил
         if confirmation == 'declined':
+            ts_declined = time.time()
             confirm_or_dicline_rec(self.conn, flag, client_phone, flag_name, confirm=False)
+            te_declined = time.time()
+            delta_time = round(te_declined - ts_declined, 3)
+            declined_time = delta_time
+            trace += f' del: {declined_time}'
+
 
         # если нейтрально
         if confirmation == 'neutral':
-
+            ts_neutral = time.time()
             # если было меньше входящих, чем установлено (обычно 2), то просто делаем + 1
             if flag['income_messages'] < max_messages:
-                self.conn[config_beauty.bb_db]['flags'].update_one({'_id': ObjectId('{}'.format(flag['_id']))}, {
+                self.conn[config_beauty.bb_db]['flags'].update_one({'client_phone': client_phone, 'instanceId': self.instance_id}, {
                     '$set': {'income_messages': flag['income_messages'] + 1}})
-
+                te_neutral = time.time()
+                delta_time = round(te_neutral - ts_neutral, 3)
+                neutral_time = delta_time
+                trace += f' neutral upd: {neutral_time}'
             # если равно максимуму, то удаляем флаг
             else:
-                self.conn[config_beauty.bb_db]['flags'].delete_many(
-                    {'client_phone': client_phone, 'acc_id': flag['acc_id']})
+                self.conn[config_beauty.bb_db]['flags'].delete_many({'client_phone': client_phone, 'instanceId': self.instance_id})
+                te_neutral = time.time()
+                delta_time = round(te_neutral - ts_neutral, 3)
+                neutral_time = delta_time
+                trace += f' neutral del: {neutral_time}'
 
         # если нашёл согласие в сообщении
         elif confirmation == 'yes':
+            ts_confirm = time.time()
             confirm_or_dicline_rec(self.conn, flag, client_phone, flag_name, confirm=True)
-
+            te_confirm = time.time()
+            delta_time = round(te_confirm - ts_confirm, 3)
+            confirm_time = delta_time
+            trace += f' confirm: {confirm_time}'
+        print(trace)
         return {'ok': True, 'status': 'record confirmed'}
 
     def check_reply_tmp(self):
@@ -262,7 +288,7 @@ class WappHooksProcess:
 
 def confirm_or_dicline_rec(conn, flag, client_phone, flag_name, confirm=None):
     # удаляем флаг
-    conn[config_beauty.bb_db]['flags'].delete_many({'client_phone': client_phone, 'acc_id': flag['acc_id']})
+    conn[config_beauty.bb_db]['flags'].delete_many({'client_phone': client_phone, 'instanceId': flag['instanceId']})
 
     # находим соответствующий аккаунт
     account = mongo.Aggregate(conn).get_param_acc_for_id(flag['acc_id'], 'id', 'CRM_data', 'templates', 'settings',

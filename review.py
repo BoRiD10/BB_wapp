@@ -62,7 +62,7 @@ def check_review(conn, text, phone, acc_id):
                     {'$set': {'fail_counter': fail_counter}})
             return {'ok': False, 'status': 'Estimate not find'}
 
-        if estimate < message['valid']:
+        if estimate < message.get('valid', 4):
             good_estimate = 0
             text = form_negative_message(conn, client, phone, current_text, est, branch_id)
             send_admins(conn, account, phone, text)
