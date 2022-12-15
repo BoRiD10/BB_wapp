@@ -30,8 +30,10 @@ def incoming_chatapi_webhook(conn, message, instance_id):
 
     phone = ut.get_digits_from_string(message['phone'])
     for account in accounts:
+
         if not ut.account_paid(account):
             continue
+
         # Получем токен для поддержки партнерских ботов
         token = ut.get_tlg_token(conn, account)
 
@@ -41,7 +43,7 @@ def incoming_chatapi_webhook(conn, message, instance_id):
         process_wapp = WappHooksProcess(conn, account, message, phone, instance_id)
 
         # Отправляем трансляцию в тг
-        # process_wapp.send_translation_message()
+        process_wapp.send_translation_message()
 
         # Проверка не ответ ли это на рассылку или шаблон
         if not message['from_me']:
@@ -62,9 +64,9 @@ def incoming_chatapi_webhook(conn, message, instance_id):
                 confirm_status = process_wapp.read_message_and_check_flags(text)
                 if confirm_status.get('ok', False):
                     return {'ok': True, 'status': 'Confirm message processed'}
+
                 # Проверяем, сообщение ответ на отзыв
                 review_status = review.check_review(conn, text, phone, account['id'])
-
                 if review_status.get('ok', False):
                     return {'ok': True, 'status': 'Review message processed'}
 
