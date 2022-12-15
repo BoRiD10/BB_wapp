@@ -1,4 +1,5 @@
 import calendar
+import time
 import traceback
 from datetime import datetime, timedelta
 from loguru import logger
@@ -342,10 +343,21 @@ def get_review_link(conn, r, account):
 
 
 def confirm_client_recs_for_date(crm_data, client_id, date, confirm=True):
+    ts_rec = time.time()
     recs = target.Records(crm_data).get_for_period(start_date=date, end_date=date, client_id=client_id)
+    te_rec = time.time()
+    delta_time = round(te_rec - ts_rec, 3)
+    rec_time = delta_time
+    debug = f' rec: {rec_time}'
+
+    ts_log = time.time()
     if not recs or len(recs['data']) == 0:
         yclients_error(f'No recs for {crm_data["branch"]}\n\n{recs}')
         return 'No recs'
+    te_log = time.time()
+    delta_time = round(te_log - ts_log, 3)
+    log_time = delta_time
+    debug += f' log: {log_time}'
 
     fail_counter = 0
     for rec in recs['data']:
@@ -357,7 +369,7 @@ def confirm_client_recs_for_date(crm_data, client_id, date, confirm=True):
         for s in rec['services']:
             if s['amount'] > 1:
                 s['first_cost'] = s['cost_per_unit']
-
+        ts_confirm = time.time()
         if confirm:
             r = target.Records(crm_data).confirm(rec['id'], rec['staff']['id'], rec['services'], rec['client'],
                                                  rec['datetime'], rec['seance_length'], activity_id=rec['activity_id'],
@@ -366,7 +378,12 @@ def confirm_client_recs_for_date(crm_data, client_id, date, confirm=True):
             r = target.Records(crm_data).confirm(rec['id'], rec['staff']['id'], rec['services'], rec['client'],
                                                  rec['datetime'], rec['seance_length'], activity_id=rec['activity_id'],
                                                  save_if_busy=True, send_sms=False, attendance=-1)
+        te_confirm = time.time()
+        delta_time = round(te_confirm - ts_confirm, 3)
+        confirm_time = delta_time
+        debug += f' confirm: {confirm_time} len: {len(recs["data"])} phone: {rec["client"]}'
 
+    print(debug)
     if fail_counter == len(recs['data']):
         return f'No confirm records for {client_id} in {crm_data["branch"]} (attendance: -1)'
 
