@@ -75,7 +75,7 @@ def check_review(conn, text, phone, acc_id):
             text = form_negative_message(conn, client, phone, current_text, est, branch_id)
             ut.send_tmsg_to_queue(conn, account, account['owner']['telegram_id'], text, 'now')
 
-        if estimate >= message['valid']:
+        if estimate >= message.get('valid', 4):
             good_estimate = 1
 
         for i in range(status + 1, len(rev_messages)):

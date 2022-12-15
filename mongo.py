@@ -29,38 +29,38 @@ class Aggregate:
         """
         Поиск всех параметров аккаунта по инстансу. Возвращает всех аккаунтов с таким инстансом
         """
-        # aggregate_data = [{'$match': {'accounts.chat_api.instanceId': instanceId}},
-        #                   {'$unwind': {'path': '$accounts'}},
-        #                   {'$match': {'accounts.chat_api.instanceId': instanceId}}]
-        #
-        # project = {'$project': {'_id': 0}}
-        # for i in param:
-        #     project['$project'][i] = f'$accounts.{i}'
-        #
-        # if client_name:
-        #     project['$project']['name'] = '$name'
-        #
-        # if owner_data:
-        #     project['$project']['owner'] = '$owner'
-        #
-        # aggregate_data.append(project)
-        # data = list(self.conn['beauty_bot']['bot_clients'].aggregate(aggregate_data))
+        aggregate_data = [{'$match': {'accounts.chat_api.instanceId': instanceId}},
+                          {'$unwind': {'path': '$accounts'}},
+                          {'$match': {'accounts.chat_api.instanceId': instanceId}}]
 
-        project = {
-            '_id': 0,
-        }
+        project = {'$project': {'_id': 0}}
         for i in param:
-            project[f'accounts.{i}'] = 1
+            project['$project'][i] = f'$accounts.{i}'
 
         if client_name:
-            project[f'name'] = 1
+            project['$project']['name'] = '$name'
 
         if owner_data:
-            project['owner'] = 1
+            project['$project']['owner'] = '$owner'
 
-        bot_clients = list(self.conn['beauty_bot']['bot_clients'].find({'accounts.chat_api.instanceId': instanceId}, project))
-        accounts = [[bc['name']] + [bc['owner']] + bc['accounts'] for bc in bot_clients]
-        data = [dict({'name': account[0], 'owner': account[1]}, **acc) for account in accounts for acc in account[2:]]
+        aggregate_data.append(project)
+        data = list(self.conn['beauty_bot']['bot_clients'].aggregate(aggregate_data))
+
+        # project = {
+        #     '_id': 0,
+        # }
+        # for i in param:
+        #     project[f'accounts.{i}'] = 1
+        #
+        # if client_name:
+        #     project[f'name'] = 1
+        #
+        # if owner_data:
+        #     project['owner'] = 1
+        #
+        # bot_clients = list(self.conn['beauty_bot']['bot_clients'].find({'accounts.chat_api.instanceId': instanceId}, project))
+        # accounts = [[bc['name']] + [bc['owner']] + bc['accounts'] for bc in bot_clients]
+        # data = [dict({'name': account[0], 'owner': account[1]}, **acc) for account in accounts for acc in account[2:]]
 
         if len(data) > 0:
             return data
