@@ -15,34 +15,25 @@ moscow = pytz.timezone('Europe/Moscow')
 
 def incoming_chatapi_webhook(conn, message, instance_id):
     """Функция обработки входящего хука сообщения от chat_api"""
-    ts_all = time.time()
+
     if '#otziv' in message['body'] and text_templates.create_review_group[:20] not in message['body']:
         change_rev_group(conn, message, instance_id)
         return 'switch group'
-    ts_acc = time.time()
+
     accounts = mongo.Aggregate(conn).get_all_acc_for_instance_id(instance_id, 'settings', 'ignore_list', 'chat_api',
                                                                  'id', 'trello', 'CRM_data', 'key_phrases',
                                                                  client_name=True, owner_data=True)
-    te_acc = time.time()
-    delta_time = round(te_acc - ts_acc, 3)
-    acc_time = delta_time
 
     if not accounts:
         print(f'Account not found: {instance_id}')
         return {'ok': False, 'status': f'Account not found'}
 
-    debug = f'acc: {acc_time} len:{len(accounts)} inst: {instance_id}'
     phone = ut.get_digits_from_string(message['phone'])
     for account in accounts:
         if not ut.account_paid(account):
             continue
         # Получем токен для поддержки партнерских ботов
-        ts_token = time.time()
         token = ut.get_tlg_token(conn, account)
-        te_token = time.time()
-        delta_time = round(te_token - ts_token, 3)
-        token_time = delta_time
-        debug += f' token: {token_time}'
 
         # Получение списка номеров исключений(которые не надо проверять)
         reply_accept = account['settings']['reply_msg_check']
@@ -50,12 +41,7 @@ def incoming_chatapi_webhook(conn, message, instance_id):
         process_wapp = WappHooksProcess(conn, account, message, phone, instance_id)
 
         # Отправляем трансляцию в тг
-        ts_translate = time.time()
-        process_wapp.send_translation_message()
-        te_translate = time.time()
-        delta_time = round(te_translate - ts_translate, 3)
-        translate_time = delta_time
-        debug += f'translate: {translate_time}'
+        # process_wapp.send_translation_message()
 
         # Проверка не ответ ли это на рассылку или шаблон
         if not message['from_me']:
@@ -64,12 +50,7 @@ def incoming_chatapi_webhook(conn, message, instance_id):
             process_wapp.check_key_phrase_and_get_reply()
 
             # Сохраняем номер в базу для трансфера в базу ycl
-            ts_save = time.time()
-            process_wapp.save_phones_in_db()
-            te_save = time.time()
-            delta_time = round(te_save - ts_save, 3)
-            save_time = delta_time
-            debug += f'save: {save_time}'
+            # process_wapp.save_phones_in_db()
 
             if message['type'] in ['chat', 'buttons_response']:
                 text = message['body']
@@ -78,56 +59,26 @@ def incoming_chatapi_webhook(conn, message, instance_id):
 
             if text is not None:
                 # Проверяем, сообщение для подтверждения
-                ts_confirm = time.time()
                 confirm_status = process_wapp.read_message_and_check_flags(text)
-                te_confirm = time.time()
-                delta_time = round(te_confirm - ts_confirm, 3)
-                confirm_time = delta_time
-                debug += f' confirm: {confirm_time}'
                 if confirm_status.get('ok', False):
-                    print(debug)
                     return {'ok': True, 'status': 'Confirm message processed'}
                 # Проверяем, сообщение ответ на отзыв
-                ts_rev = time.time()
                 review_status = review.check_review(conn, text, phone, account['id'])
-                te_rex = time.time()
-                delta_time = round(te_rex - ts_rev, 3)
-                rev_time = delta_time
-                debug += f' rev: {rev_time}'
+
                 if review_status.get('ok', False):
-                    print(debug)
                     return {'ok': True, 'status': 'Review message processed'}
-            # Проверяем, сообщение ответ на рассылку
-            ts_sendout = time.time()
-            process_wapp.check_reply_sendouts(channel=message['channel'])
-            te_sendout = time.time()
-            delta_time = round(te_sendout - ts_sendout, 3)
-            sendout_time = delta_time
-            debug += f' sendout: {sendout_time}'
 
-            # Проверяем, сообщение ответ на сообщение для потеряшек
-            ts_template = time.time()
-            process_wapp.check_reply_tmp()
-            te_template = time.time()
-            delta_time = round(te_template - ts_template, 3)
-            template_time = delta_time
-            debug += f' template: {template_time}'
-
-            ts_heck = time.time()
-            # Проверка на нахождение номера в списке исключения, если нет, то обрабатываем
-            if phone not in ignore_list and reply_accept == 1 and len(phone) in range(10, 13):
-                process_wapp.save_phone_for_check_and_warn()
-            te_heck = time.time()
-            delta_time = round(te_heck - ts_heck, 3)
-            heck_time = delta_time
-            debug += f' heck: {heck_time}'
+            # # Проверяем, сообщение ответ на рассылку
+            # process_wapp.check_reply_sendouts(channel=message['channel'])
+            #
+            # # Проверяем, сообщение ответ на сообщение для потеряшек
+            # process_wapp.check_reply_tmp()
+            #
+            # # Проверка на нахождение номера в списке исключения, если нет, то обрабатываем
+            # if phone not in ignore_list and reply_accept == 1 and len(phone) in range(10, 13):
+            #     process_wapp.save_phone_for_check_and_warn()
 
         process_wapp.add_phone_in_blacklist(token)
-    te_all = time.time()
-    delta_time = round(te_all - ts_all, 3)
-    all_time = delta_time
-    debug += f'all: {all_time}'
-    print(debug)
     return {'accounts': accounts}
 
 

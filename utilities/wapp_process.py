@@ -256,35 +256,17 @@ class WappHooksProcess:
 
 def confirm_or_dicline_rec(conn, flag, client_phone, flag_name, confirm=None):
     # удаляем флаг
-    ts_del = time.time()
     conn[config_beauty.bb_db]['flags'].delete_many({'client_phone': client_phone, 'instanceId': flag['instanceId']})
-    te_del = time.time()
-    delta_time = round(te_del - ts_del, 3)
-    del_time = delta_time
-    debug = f' confirm: {del_time}'
 
-    # находим соответствующий аккаунт
-    ts_find = time.time()
     account = mongo.Aggregate(conn).get_param_acc_for_id(flag['acc_id'], 'id', 'CRM_data', 'templates', 'settings',
                                                          'telegram_api', 'chat_api')
-    te_find = time.time()
-    delta_time = round(te_find - ts_find, 3)
-    find_time = delta_time
-    debug += f' find: {find_time}'
 
     for template in account['templates']['timing_messages']:
         if not confirm and template['id'] == flag['message_id'] and 'declined_record' not in template:
-            print(debug + ' No declined message')
             return {'ok': True, 'status': 'No declined message'}
 
-    ts_confirm = time.time()
     res = sd.confirm_client_recs_for_date(account["CRM_data"], flag['client_id'], flag['date'], confirm=confirm)
-    te_confirm = time.time()
-    delta_time = round(te_confirm - ts_confirm, 3)
-    confirm_time = delta_time
-    debug += f' confirm: {confirm_time}'
 
-    ts_logs = time.time()
     if not res:
         wapp_process_error(
             f'handler_beauty.py read_message_and_check_flags() No recs: {account["CRM_data"]["branch_name"]} {client_phone}')
@@ -293,18 +275,8 @@ def confirm_or_dicline_rec(conn, flag, client_phone, flag_name, confirm=None):
     if 'No confirm' in res:
         wapp_process_error(f'handler_beauty.py read_message_and_check_flags() confirmation==yes: {res}')
         return 'No confirm'
-    te_logs = time.time()
-    delta_time = round(te_logs - ts_logs, 3)
-    logs_time = delta_time
-    debug += f' logs: {logs_time}'
 
-    ts_confirm_msg = time.time()
     send_confirm_msg(conn, res, account, client_phone, flag, flag_name, confirm=confirm)
-    te_confirm_msg = time.time()
-    delta_time = round(te_confirm_msg - ts_confirm_msg, 3)
-    confirm_msg_time = delta_time
-    debug += f' confirm_msg: {confirm_msg_time}'
-    print(debug)
 
 
 def send_confirm_msg(conn, res, account, client_phone, flag, flag_name, confirm=None):
@@ -312,7 +284,6 @@ def send_confirm_msg(conn, res, account, client_phone, flag, flag_name, confirm=
     declined_text = ''
     reply_text = None
     try:
-        ts_first = time.time()
         if 'attendance' in res:
             if confirm:
                 msg = '✅ Запись подтверждена'
@@ -346,12 +317,7 @@ def send_confirm_msg(conn, res, account, client_phone, flag, flag_name, confirm=
                                                                                             'branch_name'])
             msg = msg0 + '❌ Нет прав на изменение записей для филиала\n\n🏢 {}'.format(
                 account['CRM_data']['branch_name'])
-        te_first = time.time()
-        delta_time = round(te_first - ts_first, 3)
-        first_time = delta_time
-        debug = f'first: {first_time}'
 
-        ts_send = time.time()
         if confirmed:
             if reply_text != '':
                 ut.send_message_to_queue(conn, 'text', {'name': account['CRM_data']['branch_name']}, account,
@@ -360,26 +326,12 @@ def send_confirm_msg(conn, res, account, client_phone, flag, flag_name, confirm=
             if declined_text != '':
                 ut.send_message_to_queue(conn, 'text', {'name': account['CRM_data']['branch_name']}, account,
                                          client_phone, declined_text, 'now')
-        te_send = time.time()
-        delta_time = round(te_send - ts_send, 3)
-        send_time = delta_time
-        debug += f' send_time: {send_time}'
 
-        ts_token = time.time()
         token = ut.get_tlg_token(conn, account)
-        te_token = time.time()
-        delta_time = round(te_token - ts_token, 3)
-        token_time = delta_time
-        debug += f' token: {token_time}'
 
-        ts_send_tg = time.time()
         for tg in account['settings']['notify']:
             Bot(token).send_message(tg, msg)
-        te_send_tg = time.time()
-        delta_time = round(te_send_tg - ts_send_tg, 3)
-        send_tg_time = delta_time
-        debug += f'send_tg: {send_tg_time}'
-        print(debug)
+
 
     except:
         ut.report_exception('ошибка подтвержения записи в h_b')
