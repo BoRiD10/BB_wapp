@@ -304,6 +304,7 @@ def confirm_or_dicline_rec(conn, flag, client_phone, flag_name, confirm=None):
     delta_time = round(te_confirm_msg - ts_confirm_msg, 3)
     confirm_msg_time = delta_time
     debug += f' confirm_msg: {confirm_msg_time}'
+    print(debug)
 
 
 def send_confirm_msg(conn, res, account, client_phone, flag, flag_name, confirm=None):
