@@ -24,11 +24,12 @@ def incoming_wapp(r):
         r = green_to_api(r)
     else:
         return {'ok': False, 'status': 'no valid type webhook'}
+
     if 'messages' in r:
-        with mongo.get_conn() as conn:
-            for message in r['messages']:
-                standart_message = form_hook.formatting_wapp_hook(message, r['instanceId'])
-                handler_beauty.incoming_chatapi_webhook(conn, standart_message, r['instanceId'])
+        conn = mongo.get_conn()
+        for message in r['messages']:
+            standart_message = form_hook.formatting_wapp_hook(message, r['instanceId'])
+            handler_beauty.incoming_chatapi_webhook(conn, standart_message, r['instanceId'])
     return 'ok'
 
 

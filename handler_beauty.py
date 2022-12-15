@@ -15,6 +15,7 @@ moscow = pytz.timezone('Europe/Moscow')
 
 def incoming_chatapi_webhook(conn, message, instance_id):
     """Функция обработки входящего хука сообщения от chat_api"""
+    ts_all = time.time()
     if '#otziv' in message['body'] and text_templates.create_review_group[:20] not in message['body']:
         change_rev_group(conn, message, instance_id)
         return 'switch group'
@@ -25,6 +26,8 @@ def incoming_chatapi_webhook(conn, message, instance_id):
     te_acc = time.time()
     delta_time = round(te_acc - ts_acc, 3)
     acc_time = delta_time
+    debug = f'acc: {acc_time} len:{len(accounts)} inst: {instance_id}'
+
     if not accounts:
         print(f'Account not found: {instance_id}')
         return {'ok': False, 'status': f'Account not found'}
@@ -39,6 +42,7 @@ def incoming_chatapi_webhook(conn, message, instance_id):
         te_token = time.time()
         delta_time = round(te_token - ts_token, 3)
         token_time = delta_time
+        debug += f' token: {token_time}'
 
         # Получение списка номеров исключений(которые не надо проверять)
         reply_accept = account['settings']['reply_msg_check']
@@ -51,6 +55,7 @@ def incoming_chatapi_webhook(conn, message, instance_id):
         te_translate = time.time()
         delta_time = round(te_translate - ts_translate, 3)
         translate_time = delta_time
+        debug += f'translate: {translate_time}'
 
         # Проверка не ответ ли это на рассылку или шаблон
         if not message['from_me']:
@@ -64,12 +69,13 @@ def incoming_chatapi_webhook(conn, message, instance_id):
             te_save = time.time()
             delta_time = round(te_save - ts_save, 3)
             save_time = delta_time
+            debug += f'save: {save_time}'
 
             if message['type'] in ['chat', 'buttons_response']:
                 text = message['body']
             else:
                 text = message['caption']
-            debug = f'acc: {acc_time} len:{len(accounts)} inst: {instance_id} token: {token_time} translate: {translate_time} save: {save_time}'
+
             if text is not None:
                 # Проверяем, сообщение для подтверждения
                 ts_confirm = time.time()
@@ -97,12 +103,15 @@ def incoming_chatapi_webhook(conn, message, instance_id):
             te_sendout = time.time()
             delta_time = round(te_sendout - ts_sendout, 3)
             sendout_time = delta_time
+            debug += f' sendout: {sendout_time}'
+
             # Проверяем, сообщение ответ на сообщение для потеряшек
             ts_template = time.time()
             process_wapp.check_reply_tmp()
             te_template = time.time()
             delta_time = round(te_template - ts_template, 3)
             template_time = delta_time
+            debug += f' template: {template_time}'
 
             ts_heck = time.time()
             # Проверка на нахождение номера в списке исключения, если нет, то обрабатываем
@@ -111,11 +120,14 @@ def incoming_chatapi_webhook(conn, message, instance_id):
             te_heck = time.time()
             delta_time = round(te_heck - ts_heck, 3)
             heck_time = delta_time
-            debug += f' sendout: {sendout_time} template: {template_time} heck: {heck_time}'
-            print(debug)
+            debug += f' heck: {heck_time}'
 
         process_wapp.add_phone_in_blacklist(token)
-
+    te_all = time.time()
+    delta_time = round(te_all - ts_all, 3)
+    all_time = delta_time
+    debug += f'all: {all_time}'
+    print(debug)
     return {'accounts': accounts}
 
 
