@@ -30,6 +30,7 @@ def incoming_wapp(r):
         for message in r['messages']:
             standart_message = form_hook.formatting_wapp_hook(message, r['instanceId'])
             handler_beauty.incoming_chatapi_webhook(conn, standart_message, r['instanceId'])
+        conn.close()
     return 'ok'
 
 
