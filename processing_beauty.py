@@ -17,7 +17,7 @@ def incoming_wapp(r):
 
     # Маскируем Green-Api под Chat_Api
     if r.get('typeWebhook', '') in ['incomingMessageReceived', 'outgoingMessageReceived', 'outgoingAPIMessageReceived']:
-        if r['typeWebhook'] == 'incomingMessageReceived' and r['senderData']['chatId'] == 'status@broadcast' and r['typeWebhook'] == 'outgoingMessageReceived' and r['typeWebhook'] == 'outgoingAPIMessageReceived':
+        if r['typeWebhook'] == 'incomingMessageReceived' and r['senderData']['chatId'] == 'status@broadcast':
             return {'ok': False, 'status': 'no valid sender'}
         if r['messageData']['typeMessage'] == 'contactMessage':
             return {'ok': False, 'status': 'contact message is not supported'}
