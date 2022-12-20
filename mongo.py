@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from urllib.parse import quote_plus as quote
 from pymongo import MongoClient
 
@@ -44,23 +45,7 @@ class Aggregate:
             project['$project']['owner'] = '$owner'
 
         aggregate_data.append(project)
-        data = list(self.conn['beauty_bot']['bot_clients'].aggregate(aggregate_data))
-
-        # project = {
-        #     '_id': 0,
-        # }
-        # for i in param:
-        #     project[f'accounts.{i}'] = 1
-        #
-        # if client_name:
-        #     project[f'name'] = 1
-        #
-        # if owner_data:
-        #     project['owner'] = 1
-        #
-        # bot_clients = list(self.conn['beauty_bot']['bot_clients'].find({'accounts.chat_api.instanceId': instanceId}, project))
-        # accounts = [[bc['name']] + [bc['owner']] + bc['accounts'] for bc in bot_clients]
-        # data = [dict({'name': account[0], 'owner': account[1]}, **acc) for account in accounts for acc in account[2:]]
+        data = list(self.conn[config_beauty.bb_db]['bot_clients'].aggregate(aggregate_data))
 
         if len(data) > 0:
             return data
@@ -93,3 +78,16 @@ class Aggregate:
             return setting[0]
         else:
             return False
+
+
+def save_phone_if_want_rec(conn, phone, acc_id, time_delta):
+    insert_data = {
+        'acc_id': acc_id,
+        'phone': phone,
+        'write_at': datetime.now() + timedelta(hours=3 + time_delta)
+    }
+    try:
+        conn[config_beauty.bb_db]['want_rec'].insert_one(insert_data)
+        return {"ok": True, "status": "phone added in DB"}
+    except:
+        return {"ok": True, "status": "phone already exists"}
