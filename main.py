@@ -11,10 +11,12 @@ app = Flask(__name__)
 @app.route('/beauty_wapp', methods=['GET', 'POST'])
 def beauty_wapp():
     r = request.get_json()
-
     try:
         processing_beauty.incoming_wapp(r)
     except:
         processing_beauty.report_exception(traceback.format_exc(), r)
-
     return 'ok'
+
+
+if __name__ == "__main__":
+    app.run(debug=True, port=80)

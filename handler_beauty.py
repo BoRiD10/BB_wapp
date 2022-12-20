@@ -7,6 +7,7 @@ import pytz
 import mongo
 import review
 import utilities.utils as ut
+import want_to_rec
 from utilities.wapp_process import WappHooksProcess
 from configs import config_beauty, text_templates
 
@@ -22,7 +23,7 @@ def incoming_chatapi_webhook(conn, message, instance_id):
 
     accounts = mongo.Aggregate(conn).get_all_acc_for_instance_id(instance_id, 'settings', 'ignore_list', 'chat_api',
                                                                  'id', 'trello', 'CRM_data', 'key_phrases',
-                                                                 client_name=True, owner_data=True)
+                                                                 'want_rec_messages', client_name=True, owner_data=True)
 
     if not accounts:
         print(f'Account not found: {instance_id}')
@@ -70,15 +71,20 @@ def incoming_chatapi_webhook(conn, message, instance_id):
                 if review_status.get('ok', False):
                     return {'ok': True, 'status': 'Review message processed'}
 
-            # # Проверяем, сообщение ответ на рассылку
-            # process_wapp.check_reply_sendouts(channel=message['channel'])
-            #
-            # # Проверяем, сообщение ответ на сообщение для потеряшек
-            # process_wapp.check_reply_tmp()
-            #
-            # # Проверка на нахождение номера в списке исключения, если нет, то обрабатываем
-            # if phone not in ignore_list and reply_accept == 1 and len(phone) in range(10, 13):
-            #     process_wapp.save_phone_for_check_and_warn()
+                # Проверяем, хотел ли клиент записаться
+                want_rec = want_to_rec.find_rec_desire_in_text(text)['result']
+                if want_rec == 'yes' and account.get('want_rec_messages', []):
+                    mongo.save_phone_if_want_rec(conn, phone, account['id'])
+
+            # Проверяем, сообщение ответ на рассылку
+            process_wapp.check_reply_sendouts(channel=message['channel'])
+
+            # Проверяем, сообщение ответ на сообщение для потеряшек
+            process_wapp.check_reply_tmp()
+
+            # Проверка на нахождение номера в списке исключения, если нет, то обрабатываем
+            if phone not in ignore_list and reply_accept == 1 and len(phone) in range(10, 13):
+                process_wapp.save_phone_for_check_and_warn()
 
         process_wapp.add_phone_in_blacklist(token)
     return {'accounts': accounts}
