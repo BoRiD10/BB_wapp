@@ -70,15 +70,15 @@ def incoming_chatapi_webhook(conn, message, instance_id):
                 if review_status.get('ok', False):
                     return {'ok': True, 'status': 'Review message processed'}
 
-            # # Проверяем, сообщение ответ на рассылку
-            # process_wapp.check_reply_sendouts(channel=message['channel'])
-            #
-            # # Проверяем, сообщение ответ на сообщение для потеряшек
-            # process_wapp.check_reply_tmp()
-            #
-            # # Проверка на нахождение номера в списке исключения, если нет, то обрабатываем
-            # if phone not in ignore_list and reply_accept == 1 and len(phone) in range(10, 13):
-            #     process_wapp.save_phone_for_check_and_warn()
+            # Проверяем, сообщение ответ на рассылку
+            process_wapp.check_reply_sendouts(channel=message['channel'])
+
+            # Проверяем, сообщение ответ на сообщение для потеряшек
+            process_wapp.check_reply_tmp()
+
+            # Проверка на нахождение номера в списке исключения, если нет, то обрабатываем
+            if phone not in ignore_list and reply_accept == 1 and len(phone) in range(10, 13):
+                process_wapp.save_phone_for_check_and_warn()
 
         process_wapp.add_phone_in_blacklist(token)
     return {'accounts': accounts}
