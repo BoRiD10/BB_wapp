@@ -72,9 +72,10 @@ def incoming_chatapi_webhook(conn, message, instance_id):
                     return {'ok': True, 'status': 'Review message processed'}
 
                 # Проверяем, хотел ли клиент записаться
-                want_rec = want_to_rec.find_rec_desire_in_text(text)['result']
-                if want_rec == 'yes' and account.get('want_rec_messages', []):
-                    mongo.save_phone_if_want_rec(conn, phone, account['id'])
+                if account.get('want_rec_messages', []) and account["CRM_data"]["branch"] == '86774':
+                    want_rec = want_to_rec.find_rec_desire_in_text(text)['result']
+                    if want_rec == 'yes':
+                        mongo.save_phone_if_want_rec(conn, phone, account['id'])
 
             # Проверяем, сообщение ответ на рассылку
             process_wapp.check_reply_sendouts(channel=message['channel'])
