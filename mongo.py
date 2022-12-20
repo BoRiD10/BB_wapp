@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import quote_plus as quote
 from pymongo import MongoClient
 
@@ -80,11 +80,11 @@ class Aggregate:
             return False
 
 
-def save_phone_if_want_rec(conn, phone, acc_id):
+def save_phone_if_want_rec(conn, phone, acc_id, time_delta):
     insert_data = {
         'acc_id': acc_id,
         'phone': phone,
-        'write_at': datetime.now()
+        'write_at': datetime.now() + timedelta(hours=3 + time_delta)
     }
     try:
         conn[config_beauty.bb_db]['want_rec'].insert_one(insert_data)

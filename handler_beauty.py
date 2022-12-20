@@ -75,7 +75,8 @@ def incoming_chatapi_webhook(conn, message, instance_id):
                 if account.get('want_rec_messages', []) and account["CRM_data"]["branch"] == '86774':
                     want_rec = want_to_rec.find_rec_desire_in_text(text)['result']
                     if want_rec == 'yes':
-                        mongo.save_phone_if_want_rec(conn, phone, account['id'])
+                        time_delta = account.get('time_to_msk', 0)
+                        mongo.save_phone_if_want_rec(conn, phone, account['id'], time_delta)
 
             # Проверяем, сообщение ответ на рассылку
             process_wapp.check_reply_sendouts(channel=message['channel'])
