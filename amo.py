@@ -1,5 +1,7 @@
 import traceback
 
+from loguru import logger
+
 import mongo
 from configs import config_beauty, config
 
@@ -7,6 +9,13 @@ from exceptions.custom_exception import CustomException
 from telegram import Bot
 import utilities.utils as ut
 from wapp import GreenApi
+
+
+def inst_state_log(text):
+    logger.remove()
+    logger.add('BB_wapp/logs/state_instance/state_instance_info.log', format='{time} {level} {message}',
+               level='INFO', rotation='00:00', compression='tar.xz')
+    logger.info(text)
 
 
 class Triggers:
@@ -41,7 +50,7 @@ def notify_sales_about_first_enable_instance(r):
             resp = GreenApi('', account[0]['chat_api']).set_settings(state=True)
             if resp['saveSettings']:
                 msg = f'Хуки о состоянии отключены для филиала {account[0]["CRM_data"]["branch"]}'
-                Bot(config.bb_dev_bot_token).send_message(config_beauty.tg_err_group_id, msg)
+                inst_state_log(msg)
         except:
             tb = traceback.format_exc(chain=False)
             msg = f'{account[0]["CRM_data"]["branch_name"]}({account[0]["CRM_data"]["branch"]})\n\n'
