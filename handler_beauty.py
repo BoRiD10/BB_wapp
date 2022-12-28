@@ -94,11 +94,12 @@ def incoming_chatapi_webhook(conn, message, instance_id):
 
 def change_rev_group(conn, message, instance_id):
     # Изменение трансляции отзывов в существующую группу в WA
-    tag = re.findall(r'(#\w+)', message['body'])[0]
-    branch_id = tag[6:]
-    group_id = message['chatId']  # !
-    accounts = mongo.Aggregate(conn).get_all_acc_for_instance_id(instance_id, 'chat_api', 'settings', 'CRM_data',
-                                                                 channel=message['channel'], client_name=True)
+    tag = re.findall(r'(#\w+ [0-9]+)', message['body'])[0]
+    branch_id = tag[7:]
+    group_id = message['chat_id'] + '@g.us'  # !
+    accounts = mongo.Aggregate(conn).get_all_acc_for_instanceId(instance_id, 'chat_api', 'settings', 'CRM_data',
+                                                                'review_messages',
+                                                                channel=message['channel'], client_name=True)
     if accounts:
         acc = accounts[0]
     else:
@@ -110,10 +111,11 @@ def change_rev_group(conn, message, instance_id):
         try:
             conn[config_beauty.bb_db]['bot_clients'].update_one(
                 {'accounts.CRM_data.branch': branch_id, 'accounts.chat_api.instanceId': instance_id},
-                {'$set': {'accounts.$.review_messages.0.WA_alerts.0': group_id}})
+                {'$addToSet': {
+                    'accounts.$.review_messages.$[elem].0.WA_alerts': group_id}},
+                array_filters=[{"elem": {'$exists': True}}])
             success_text = text_templates.default_review_messages['add_WA_group'].format(branch_id)
             ut.send_message_to_queue(conn, 'text', acc, acc, group_id, success_text, 'urgent')
-
         except:
             err_text = text_templates.default_review_messages['no_branch_group'].format(branch_id)
             ut.send_message_to_queue(conn, 'text', {'name': 'msg_to_group'}, acc, group_id, err_text, 'urgent')
