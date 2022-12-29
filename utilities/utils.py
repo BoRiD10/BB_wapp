@@ -58,6 +58,7 @@ def insert_keys_into_templates(keys, template, note_before='', randomize=True):
     template = template.format(
         name=keys['name'],
         day_month=keys['day_month'],
+        digital_date=keys['digital_date'],
         day_of_week=keys['day_of_week'],
         start_time=keys['start_time'],
         end_time=keys['end_time'],
