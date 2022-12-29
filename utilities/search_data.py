@@ -43,6 +43,7 @@ def get_record_keys(account, r, multiple_recs=None, message='', conn=None):
     day_of_week = keys.days[dow]
     month = keys.months[str(date_time.month)]
     day_month = '{} {}'.format(date_time.day, month)
+    digital_date = '{}.{}'.format(date_time.day, date_time.month)
 
     name = keys.get_names()
     master = keys.get_master_name()
@@ -57,6 +58,7 @@ def get_record_keys(account, r, multiple_recs=None, message='', conn=None):
     data = {
         'name': name,
         'day_month': day_month,
+        'digital_date': digital_date,
         'day_of_week': str(day_of_week),
         'start_time': start_time,
         'end_time': end_time,
