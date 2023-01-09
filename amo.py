@@ -9,6 +9,7 @@ from exceptions.custom_exception import CustomException
 from telegram import Bot
 import utilities.utils as ut
 from wapp import GreenApi
+from wapp_logic import target
 
 
 def inst_state_log(text):
@@ -47,7 +48,7 @@ def notify_sales_about_first_enable_instance(r):
             exception = CustomException('amo_1', config_beauty.tg_err_group_id)
             exception.chose_action(tb)
         try:
-            resp = GreenApi('', account[0]['chat_api']).set_settings(state=True)
+            resp = target.Wapp(account[0]['chat_api']).set_settings(state=True)
             if resp['saveSettings']:
                 msg = f'Хуки о состоянии отключены для филиала {account[0]["CRM_data"]["branch"]}'
                 inst_state_log(msg)
